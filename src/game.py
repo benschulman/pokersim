@@ -25,56 +25,147 @@ class Score(enum.Enum):
 
 class Hand:
     def __init__(self, hand):
+        hand.sort(key=lambda _ : RANK.index(_[0]))
         self.score = self._calc_score(hand)
         self.rank = self._calc_rank(hand)
     
     @staticmethod
-    def _isStraightFlush(hand):
-        pass
-
-    @staticmethod
     def _isFourOfAKind(hand):
-        pass
+        # Four + High Card
+        found = True
+        rank = hand[0][0]
+        for i in range(1, len(hand)-1, 1):
+            if not rank == hand[i][0]:
+                found = False
+                break
+        if found:
+            return True
+        
+        # Four + Low Card
+        rank = hand[1][0]
+        for i in range(2, len(hand), 1):
+            if not rank == hand[i][0]:
+                return False
+        
+        return True
 
     @staticmethod
     def _isFullHouse(hand):
-        pass
+        # Three and Two
+        if hand[0][0] == hand[1][0] == hand[2][0]:
+            if hand[3][0] == hand[4][0]:
+                return True
+
+        # Two and Three
+        if hand[0][0] == hand[1][0]:
+            if hand[2][0] == hand[3][0] == hand[4][0]:
+                return True
+        
+        return False
 
     @staticmethod
     def _isFlush(hand):
-        pass
+        suit = hand[0][1]
+
+        for card in hand:
+            if not card[1] == suit:
+                return False
+        
+        return True
 
     @staticmethod
     def _isStraight(hand):
-        pass
+        return False
     
     @staticmethod
     def _isThreeOfAKind(hand):
-        pass
+        if hand[0][0] == hand[1][0] == hand[2][0]:
+            return True
+        if hand[1][0] == hand[2][0] == hand[3][0]:
+            return True
+        if hand[2][0] == hand[3][0] == hand[4][0]:
+            return True
+        return False
 
     @staticmethod
     def _isTwoPair(hand):
-        pass
+        # 2 2 1
+        if hand[0][0] == hand[1][0] and hand[2][0] == hand[3][0]:
+            return True
+
+        # 2 1 2
+        if hand[0][0] == hand[1][0] and hand[3][0] == hand[4][0]:
+            return True
+
+        # 1 2 2
+        if hand[1][0] == hand[2][0] and hand[3][0] == hand[4][0]:
+            return True
+        
+        return False
 
     @staticmethod
     def _isPair(hand):
-        pass
+        # 2 1 1 1
+        
+        # 1 2 1 1
+        # 1 1 2 1
+        # 1 1 1 2
+        return False
    
-    def _calc_score(self, hand) -> Score:
+    def _calc_score(self, hand : list):
+        # hand is assumed to be sorted by rank
         if not len(hand) == 5:
             raise Exception("Incorrect hand length")
-        # TODO: Finish _calc_score method
+
+        if Hand._isFlush(hand):
+            if Hand._isStraight(hand):
+                 # Straight Flush
+                return Score.STRAIGHTFLUSH
+            else:
+                # Flush
+                return Score.FLUSH
+        if Hand._isStraight(hand):
+            # Straight
+            return Score.STRAIGHT
+        
+        if Hand._isFourOfAKind(hand):
+            return Score.FOUROFAKIND
+        
+        if Hand._isFullHouse(hand):
+            return Score.FULLHOUSE
+
+        if Hand._isThreeOfAKind(hand):
+            return Score.THREEOFAKIND
+        
+        if Hand._isTwoPair(hand):
+            return Score.TWOPAIR
+        
+        if Hand._isPair(hand):
+            return Score.PAIR
+
         return Score.HIGHCARD
     
-    def _calc_rank(self, hand) -> tuple:
+    def _calc_rank(self, hand : list) -> tuple:
+        # hand is assumed to be sorted by rank and self.score is correctly initialized
+        # TODO Finish _calc_rank
         if not len(hand) == 5:
             raise Exception("Incorrect hand length")
-        # TODO: Finish _calc_rank method
         return (1,1,1,1,1)
     
     def compare(self, other):
-        # TODO Compare hands
-        pass
+        if self.score > other.score:
+            return 1
+        elif self.score == other.score:
+            for a, b in zip(self.rank, other.rank):
+                if a > b:
+                    return 1
+                elif b > a:
+                    return -1
+                else:
+                    continue
+            return 0
+        else:
+            return -1
 
 class Deck:
         def __iter__(self):
