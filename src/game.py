@@ -26,8 +26,8 @@ class Score(enum.Enum):
 class Hand:
     def __init__(self, hand):
         hand.sort(key=lambda _ : RANK.index(_[0]))
-        self.score = self._calc_score(hand)
-        self.rank = self._calc_rank(hand)
+        self.score, self.rank = self._calc_score_and_rank(hand)
+        self.hand_lst = hand
     
     @staticmethod
     def _isFourOfAKind(hand):
@@ -39,141 +39,208 @@ class Hand:
                 found = False
                 break
         if found:
-            return True
+            r_1 = RANK.index(rank)
+            r_2 = RANK.index(hand[4][0])
+            tup = [r_1,r_1,r_1,r_1,r_2]
+            return (True, tup)
         
         # Four + Low Card
         rank = hand[1][0]
         for i in range(2, len(hand), 1):
             if not rank == hand[i][0]:
-                return False
+                return (False, [1,1,1,1,1])
         
-        return True
+        r_1 = RANK.index(rank)
+        r_2 = RANK.index(hand[0][0])
+        tup = [r_1,r_1,r_1,r_1,r_2]
+        return (True, tup)
 
     @staticmethod
     def _isFullHouse(hand):
         # Three and Two
         if hand[0][0] == hand[1][0] == hand[2][0]:
             if hand[3][0] == hand[4][0]:
-                return True
+                r_1 = RANK.index(hand[0][0])
+                r_2 = RANK.index(hand[3][0])
+                tup = [r_1, r_1, r_1, r_2, r_2]
+                return (True, tup)
 
         # Two and Three
         if hand[0][0] == hand[1][0]:
             if hand[2][0] == hand[3][0] == hand[4][0]:
-                return True
+                r_1 = RANK.index(hand[2][0])
+                r_2 = RANK.index(hand[0][0])
+                tup = [r_1, r_1, r_1, r_2, r_2]
+                return (True, tup)
         
-        return False
+        return (False, [1,1,1,1,1])
 
     @staticmethod
     def _isFlush(hand):
         suit = hand[0][1]
+        tup = [1,1,1,1,1]
 
         for card in hand:
             if not card[1] == suit:
-                return False
+                return (False, tup)
         
-        return True
+        for i, card in enumerate(hand):
+            tup[4-i] = RANK.index(card[0])
+        return (True, tup)
 
     @staticmethod
     def _isStraight(hand):
         get_rank = lambda _ : RANK.index(_[0])
-        found = True
         rank_num = get_rank(hand[0])
+        tup = [1,1,1,1,rank_num]
 
         for i in range(1, 5, 1):
             if not get_rank(hand[i]) == rank_num + 1:
                 # wheel case
                 if not (i == 4 and rank_num == RANK.index('5') and hand[i][0] == 'A'):
-                    found = False
+                    return (False, [1,1,1,1,1])
+                else:
+                    return (True, [3,2,1,0,-1])
             rank_num = get_rank(hand[i])
+            tup[4-i] = rank_num
         
-        if found:
-            return True
+        return (True, tup)
     
     @staticmethod
     def _isThreeOfAKind(hand):
+        get_rank = lambda _ : RANK.index(_[0])
+
         if hand[0][0] == hand[1][0] == hand[2][0]:
-            return True
+            r_1 = get_rank(hand[0])
+            r_2 = get_rank(hand[3])
+            r_3 = get_rank(hand[4])
+            return (True, [r_1, r_1, r_1, r_3, r_2])
         if hand[1][0] == hand[2][0] == hand[3][0]:
-            return True
+            r_1 = get_rank(hand[1])
+            r_2 = get_rank(hand[0])
+            r_3 = get_rank(hand[4])
+            return (True, [r_1, r_1, r_1, r_3, r_2])
         if hand[2][0] == hand[3][0] == hand[4][0]:
-            return True
-        return False
+            r_1 = get_rank(hand[2])
+            r_2 = get_rank(hand[0])
+            r_3 = get_rank(hand[1])
+            return (True, [r_1, r_1, r_1, r_3, r_2])
+        return (False, [1,1,1,1,1])
 
     @staticmethod
     def _isTwoPair(hand):
+        get_rank = lambda _ : RANK.index(_[0])
         # 2 2 1
         if hand[0][0] == hand[1][0] and hand[2][0] == hand[3][0]:
-            return True
+            r_1 = get_rank(hand[0])
+            r_2 = get_rank(hand[2])
+            r_3 = get_rank(hand[4])
+
+            return (True, [r_2, r_2, r_1, r_1, r_3])
 
         # 2 1 2
         if hand[0][0] == hand[1][0] and hand[3][0] == hand[4][0]:
-            return True
+            r_1 = get_rank(hand[0])
+            r_2 = get_rank(hand[3])
+            r_3 = get_rank(hand[2])
+
+            return (True, [r_2, r_2, r_1, r_1, r_3])
 
         # 1 2 2
         if hand[1][0] == hand[2][0] and hand[3][0] == hand[4][0]:
-            return True
+            r_1 = get_rank(hand[1])
+            r_2 = get_rank(hand[3])
+            r_3 = get_rank(hand[0])
+
+            return (True, [r_2, r_2, r_1, r_1, r_3])
         
-        return False
+        return (False, [1,1,1,1,1])
 
     @staticmethod
     def _isPair(hand):
+        get_rank = lambda _ : RANK.index(_[0])
+
         # 2 1 1 1
         if hand[0][0] == hand[1][0]:
-            return True
+            r_1 = get_rank(hand[0])
+            r_2 = get_rank(hand[2])
+            r_3 = get_rank(hand[3])
+            r_4 = get_rank(hand[4])
+
+            return (True, [r_1, r_1, r_4, r_3, r_2])
         # 1 2 1 1
         if hand[1][0] == hand[2][0]:
-            return True
+            r_1 = get_rank(hand[1])
+            r_2 = get_rank(hand[0])
+            r_3 = get_rank(hand[3])
+            r_4 = get_rank(hand[4])
+
+            return (True, [r_1, r_1, r_4, r_3, r_2])
         # 1 1 2 1
         if hand[2][0] == hand[3][0]:
-            return True
+            r_1 = get_rank(hand[2])
+            r_2 = get_rank(hand[0])
+            r_3 = get_rank(hand[1])
+            r_4 = get_rank(hand[4])
+
+            return (True, [r_1, r_1, r_4, r_3, r_2])
         # 1 1 1 2
         if hand[3][0] == hand[4][0]:
-            return True
+            r_1 = get_rank(hand[3])
+            r_2 = get_rank(hand[0])
+            r_3 = get_rank(hand[1])
+            r_4 = get_rank(hand[2])
 
-        return False
+            return (True, [r_1, r_1, r_4, r_3, r_2])
+
+        return (False, [1,1,1,1,1])
    
-    def _calc_score(self, hand : list):
+    def _calc_score_and_rank(self, hand : list):
         # hand is assumed to be sorted by rank
         if not len(hand) == 5:
             raise Exception("Incorrect hand length")
+        
+        isFlush = Hand._isFlush(hand)
+        isStraight = Hand._isStraight(hand)
 
-        if Hand._isFlush(hand):
-            if Hand._isStraight(hand):
+        if isFlush[0]:
+            if isStraight[0]:
                  # Straight Flush
-                return Score.STRAIGHTFLUSH
+                return (Score.STRAIGHTFLUSH, isFlush[1])
             else:
                 # Flush
-                return Score.FLUSH
-        if Hand._isStraight(hand):
+                return (Score.FLUSH, isFlush[1])
+        if isStraight[0]:
             # Straight
-            return Score.STRAIGHT
+            return (Score.STRAIGHT, isStraight[1])
         
-        if Hand._isFourOfAKind(hand):
-            return Score.FOUROFAKIND
+        isFourOfAKind = Hand._isFourOfAKind(hand)
+        if isFourOfAKind[0]:
+            return (Score.FOUROFAKIND, isFourOfAKind[1])
         
-        if Hand._isFullHouse(hand):
-            return Score.FULLHOUSE
+        isFullHouse = Hand._isFullHouse(hand)
+        if isFullHouse[0]:
+            return (Score.FULLHOUSE, isFullHouse[1])
 
-        if Hand._isThreeOfAKind(hand):
-            return Score.THREEOFAKIND
+        isThreeOfAKind = Hand._isThreeOfAKind(hand)
+        if isThreeOfAKind[0]:
+            return (Score.THREEOFAKIND, isThreeOfAKind[1])
         
-        if Hand._isTwoPair(hand):
-            return Score.TWOPAIR
+        isTwoPair = Hand._isTwoPair(hand)
+        if isTwoPair[0]:
+            return (Score.TWOPAIR, isTwoPair[1])
         
-        if Hand._isPair(hand):
-            return Score.PAIR
+        isPair = Hand._isPair(hand)
+        if isPair[0]:
+            return (Score.PAIR, isPair[1])
 
-        return Score.HIGHCARD
-    
-    def _calc_rank(self, hand : list) -> tuple:
-        # hand is assumed to be sorted by rank and self.score is correctly initialized
-        # TODO Finish _calc_rank
-        if not len(hand) == 5:
-            raise Exception("Incorrect hand length")
-        return (1,1,1,1,1)
+        tup = [1,1,1,1,1]
+        for i, card in enumerate(hand):
+            tup[4-i] = RANK.index(card[0])
+        return Score.HIGHCARD, tup
     
     def compare(self, other):
-        if self.score > other.score:
+        if self.score.value > other.score.value:
             return 1
         elif self.score == other.score:
             for a, b in zip(self.rank, other.rank):
@@ -202,6 +269,7 @@ class Deck:
                 return card
 
 class Player:
+    count = 0
     def __init__(self, deck, stack):
         # contains the two cards that this player has in their hand
         self.cards = [next(deck), next(deck)]
@@ -211,19 +279,79 @@ class Player:
         self.folded = False
         # The Hand object of their current best possible Hand
         self.best_hand = None
+        self.id = Player.count + 1
+        Player.count += 1
     
     def set_best_hand(self, board):
-        # TODO set_best_hand
         # Should go through all possible combinations of 5 card hands and compare them with the Hand.compare
-        #flop
+        
+        # flop
         if len(board) == 3:
-            pass
-        #turn
+            temp_hand = board.copy()
+            temp_hand.append(self.cards[0])
+            temp_hand.append(self.cards[1])
+            self.best_hand = Hand(temp_hand)
+            return
+        # turn
         if len(board) == 4:
-            pass
-        #river
+            temp_hand = []
+            # 2 hand 3 board
+            for card in board:
+                temp_hand = [c for c in board if not c == card]
+                temp_hand.extend(self.cards)
+                new_hand = Hand(temp_hand)
+                if self.best_hand == None:
+                    self.best_hand = new_hand
+                else:
+                    if self.best_hand.compare(new_hand) < 0:
+                        self.best_hand = new_hand
+            
+            # 1 hand 4 board
+            for card in self.cards:
+                temp_hand = [c for c in board]
+                temp_hand.append(card)
+                new_hand = Hand(temp_hand)
+                if self.best_hand == None:
+                    self.best_hand = new_hand
+                else:
+                    if self.best_hand.compare(new_hand) < 0:
+                        self.best_hand = new_hand
+            return
+        
+        # river
         if len(board) == 5:
-            pass
+            # just board
+            new_hand = Hand(board)
+            if self.best_hand == None:
+                self.best_hand = new_hand
+            else:
+                if self.best_hand.compare(new_hand) < 0:
+                    self.best_hand = new_hand
+            
+            # 4 board 1 hand
+            for card in board:
+                for card2 in self.cards:
+                    temp_hand = [c for c in board if not c == card]
+                    temp_hand.append(card2)
+                    new_hand = Hand(temp_hand)
+                    if self.best_hand == None:
+                        self.best_hand = new_hand
+                    else:
+                        if self.best_hand.compare(new_hand) < 0:
+                            self.best_hand = new_hand
+            # 3 board 2 cards
+            for i in range(0,5):
+                for j in range(i+1,5):
+                    temp_hand = [board[k] for k in range(0,5) if not k == i and not k == j]
+                    temp_hand.extend(self.cards)
+                    new_hand = Hand(temp_hand)
+                    if self.best_hand == None:
+                        self.best_hand = new_hand
+                    else:
+                        if self.best_hand.compare(new_hand) < 0:
+                            self.best_hand = new_hand
+            return
+        return
 
 class Game:
     def __init__(self, num_players):
@@ -254,10 +382,9 @@ class Game:
                     # if the player has a better best_hand than best, then set best to player
                     if best.best_hand.compare(player.best_hand) < 0:
                         best = player
-        return player
+        return best
 
     def display_boad(self):
-        # TODO Graphics
         print(self.board)
 
     def bet_round(self, preflop=False):
@@ -306,8 +433,10 @@ class Game:
         self.turn()
         self.river()
 
-        self.determine_winner()
+        p = self._determine_winner()
+        print("The winner is....")
+        print("Player %s with a " % p.id, p.best_hand.score, p.best_hand.hand_lst)
 
 if __name__ == "__main__":
-    holdem = Game(1)
+    holdem = Game(5)
     holdem.run()
