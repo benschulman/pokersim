@@ -75,7 +75,19 @@ class Hand:
 
     @staticmethod
     def _isStraight(hand):
-        return False
+        get_rank = lambda _ : RANK.index(_[0])
+        found = True
+        rank_num = get_rank(hand[0])
+
+        for i in range(1, 5, 1):
+            if not get_rank(hand[i]) == rank_num + 1:
+                # wheel case
+                if not (i == 4 and rank_num == RANK.index('5') and hand[i][0] == 'A'):
+                    found = False
+            rank_num = get_rank(hand[i])
+        
+        if found:
+            return True
     
     @staticmethod
     def _isThreeOfAKind(hand):
@@ -106,10 +118,18 @@ class Hand:
     @staticmethod
     def _isPair(hand):
         # 2 1 1 1
-        
+        if hand[0][0] == hand[1][0]:
+            return True
         # 1 2 1 1
+        if hand[1][0] == hand[2][0]:
+            return True
         # 1 1 2 1
+        if hand[2][0] == hand[3][0]:
+            return True
         # 1 1 1 2
+        if hand[3][0] == hand[4][0]:
+            return True
+
         return False
    
     def _calc_score(self, hand : list):
