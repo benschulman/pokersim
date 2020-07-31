@@ -1,5 +1,6 @@
 import random
 import enum
+import logging
 
 # Sorted Deck Constant
 SORTED_DECK = [
@@ -279,6 +280,8 @@ class Player:
         self.folded = False
         # The Hand object of their current best possible Hand
         self.best_hand = None
+        # How much the player has bet on a given hand
+        self.invested = 0
         self.id = Player.count + 1
         Player.count += 1
     
@@ -353,6 +356,12 @@ class Player:
             return
         return
 
+    def place_bet(self, ammount):
+        # TODO Place bet in Player class
+        if ammount > self.stack - self.invested:
+            raise Exception("Not enough money")
+
+
 class Game:
     def __init__(self, num_players):
         # create the iterable deck to deal cards from
@@ -363,15 +372,15 @@ class Game:
         self.players = [Player(self.deck, 100) for i in range(num_players)]
         # The board of common cards
         self.board = []
+        self.pot = 0
     
     def _deal_cards(self, num):
         # Deal num cards from the deck onto the board
         for i in range(num):
             self.board.append(next(self.deck))
 
-
     def _determine_winner(self):
-        # TODO Fix for ties
+        # TODO Fix _determine_winner to support ties (split pot)
         # Compares all of the players' best_hands and returns the winner
         best = None
         for player in self.players:
@@ -388,9 +397,8 @@ class Game:
         print(self.board)
 
     def bet_round(self, preflop=False):
-        # TODO bet_round
+        # TODO Implement bet_round
         input() # temporary for pausing
-        pass
     
     def calc_hands(self):
         # This function should be called after any card is delt to calculate each player's new best hand
@@ -422,8 +430,6 @@ class Game:
 
     def run(self):
         print("Starting Game...")
-
-        # Print cards (temporarily)
         for player in self.players:
             print(player.cards)
 
@@ -438,5 +444,8 @@ class Game:
         print("Player %s with a " % p.id, p.best_hand.score, p.best_hand.hand_lst)
 
 if __name__ == "__main__":
-    holdem = Game(5)
+    # TODO Add support for logging
+    logging.basicConfig(filename='logs/debug.log',level=logging.DEBUG)
+
+    holdem = Game(9)
     holdem.run()
