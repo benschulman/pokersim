@@ -1,5 +1,6 @@
 import enum
-from constants import RANK
+import random
+from constants import RANK, SORTED_DECK
 
 # Score of each type of Hand as an Enum
 class Score(enum.Enum):
@@ -12,6 +13,21 @@ class Score(enum.Enum):
     FULLHOUSE = 7
     FOUROFAKIND = 8
     STRAIGHTFLUSH = 9
+
+
+class Deck:
+        def __iter__(self):
+                self.deck = SORTED_DECK.copy()
+                random.shuffle(self.deck)
+                self.count = 0
+                return self
+
+        def __next__(self):
+                if self.count >= 52:
+                        raise StopIteration
+                card = self.deck[self.count]
+                self.count += 1
+                return card
 
 class Hand:
     def __init__(self, hand):
