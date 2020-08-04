@@ -1,7 +1,9 @@
 # created by virtualenv automatically
 bin/*
 .vscode/*
+.venv/*
 lib/*
+include/*
 pyvenv.cfg
 __pycache__/
 logs/
