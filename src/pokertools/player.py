@@ -1,4 +1,5 @@
-from helper import Hand
+from .helper import Hand
+
 class Player:
     count = 0
     def __init__(self, deck, stack):
@@ -86,22 +87,84 @@ class Player:
             return
         return
 
-    def option(self):
-        # TODO implement option to bet check or fold
-        pass
+    @staticmethod
+    def help_msg(check=True):
+        print("f: fold")
+        if check:
+            print("p: check")
+        print("c: call")
+        print("b ammount: bet")
+    
+    def option(self, call_amnt):
+        # To be endpoint
+        # player is already all-in
+        if self.stack == 0:
+            return 0
+        # Continuously prompt user for input until an allowed command is entered
+        while True:
+            # prompt user
+            print(str(call_amnt) + " to call. What would you like to do?")
+            if call_amnt == 0:
+                Player.help_msg()
+            else:
+                Player.help_msg(check=False)
 
+            # read user input
+            usr_input = input().strip()
+            
+            # fold case
+            if usr_input == "f":
+                return self._fold()
+            # check case
+            elif usr_input == "p":
+                # check to see if 'check' is allowed
+                if call_amnt > 0:
+                    print("Cannot check when there is a bet")
+                    continue
+                else:
+                    return self._check()
+            # call
+            elif usr_input == "c":
+                return self._call(call_amnt)
+            # raise
+            elif "r" in usr_input:
+                try:
+                    bet = int(usr_input.split(" ")[1])
+                    ret = self._place_bet(bet, prev_bet=call_amnt)
+                    return ret
+                except Exception:
+                    print("Bet not allowed")
+                    continue
+            else:
+                print("Unrecognized option")
+                continue
+            
+        
     def _check(self):
-        pass
+        return 0
 
-    def _place_bet(self, ammount, min_bet=0):
+    def _call(self, call_amnt):
+        # all-in case
+        if call_amnt > self.stack:
+            self.invested += self.stack
+            a = self.stack
+            self.stack = 0
+            return a
+        else:
+            pass
+            
+
+    def _place_bet(self, ammount, prev_bet=0):
         # TODO Min-bets
         if ammount > self.stack:
             raise Exception("Not enough money")
-        if ammount < min_bet:
+        if ammount < prev_bet:
             raise Exception("Bet size too small")
         self.invested += ammount
         self.stack -= ammount
+        return ammount
     
     def _fold(self):
         self.folded = True
         self.invested = 0
+        return -1

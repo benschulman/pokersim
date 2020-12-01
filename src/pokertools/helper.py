@@ -1,6 +1,6 @@
 import enum
 import random
-from constants import RANK, SORTED_DECK
+from .constants import RANK, SORTED_DECK
 
 # Score of each type of Hand as an Enum
 class Score(enum.Enum):
@@ -13,7 +13,6 @@ class Score(enum.Enum):
     FULLHOUSE = 7
     FOUROFAKIND = 8
     STRAIGHTFLUSH = 9
-
 
 class Deck:
         def __iter__(self):

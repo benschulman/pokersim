@@ -1,7 +1,6 @@
 import random
-from helper import Deck
-from Player import Player
-
+from pokertools.helper import Deck
+from pokertools.player import Player
 
 class Game:
     def __init__(self, num_players):
@@ -14,6 +13,7 @@ class Game:
         # The board of common cards
         self.board = []
         self.pot = 0
+        self.dealer_index = 0
     
     def _deal_cards(self, num):
         # Deal num cards from the deck onto the board
@@ -38,7 +38,28 @@ class Game:
         print(self.board)
 
     def bet_round(self, preflop=False):
-        # TODO Implement bet_round
+        # index of current better
+        curr_better_ind = (self.dealer_index + 1) % len(self.players)
+        # index of player that made the most recent raise
+        # this index tells the while loop when we are done, once we reach
+        # this player again then we are finished betting
+        end_ind = curr_better_ind
+        _player = self.players[curr_better_ind]
+        # size of current bet
+        call_amnt = 0
+        """
+        while True:
+            if not _player.folded:
+                ret = self.players[curr_better_ind].option(call_amnt)
+                # check or all-in case
+                if ret == 0:
+                    pass
+                elif ret == -1:
+                    pass
+                elif ret > 0:
+                    pass
+
+        """
         input()
         # Logic might be better suited to have in flop, turn and river methods
         pass
@@ -83,6 +104,11 @@ class Game:
         self.river()
 
         p = self._determine_winner()
+
+        # Move the dealer chip
+        self.dealer_index += 1
+        self.dealer_index %= len(self.players)
+
         print("The winner is....")
         print("Player %s with a " % p.id, p.best_hand.score, p.best_hand.hand_lst)
 
